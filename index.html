@@ -59,7 +59,6 @@
         }
 
         .form-group { display: flex; gap: 10px; flex-wrap: wrap; }
-        .file-actions { display: flex; gap: 10px; flex-wrap: wrap; }
         
         input, select { 
             background: #1e1e1e; 
@@ -81,9 +80,6 @@
             font-weight: bold;
         }
         button:hover { background: #27ae60; }
-
-        button.secondary-btn { background: #34495e; }
-        button.secondary-btn:hover { background: #2c3e50; }
         
         button.clear-btn { background: #c0392b; }
         button.clear-btn:hover { background: #962d22; }
@@ -96,8 +92,6 @@
             font-size: 13px; 
         }
         button.delete-btn:hover { background: #e74c3c; color: white; }
-
-        #importFile { display: none; }
 
         .table-container {
             background: #1e1e1e;
@@ -152,10 +146,7 @@
             <button onclick="addItem()">Добавить</button>
         </div>
 
-        <div class="file-actions">
-            <button class="secondary-btn" onclick="exportToCSV()">Экспорт в Excel</button>
-            <button class="secondary-btn" onclick="document.getElementById('importFile').click()">Импорт из Excel</button>
-            <input type="file" id="importFile" accept=".csv" onchange="importFromCSV(event)">
+        <div>
             <button class="clear-btn" onclick="clearAllData()">Очистить всё</button>
         </div>
     </div>
@@ -178,6 +169,7 @@
     </div>
 
     <script>
+        // Загрузка сохранённого списка из памяти браузера
         let items = JSON.parse(localStorage.getItem('accounting_items')) || [];
 
         function calculatePercent() {
@@ -279,10 +271,21 @@
             }
         }
 
-        function exportToCSV() {
-            if (items.length === 0) {
-                alert('Таблица пуста, нечего экспортировать!');
-                return;
-            }
+        function initDragAndDrop() {
+            const rows = document.querySelectorAll('#table-body tr');
+            let dragSrcIndex = null;
 
-            let csvContent = "\uFEFF"; 
+            rows.forEach(row => {
+                row.addEventListener('dragstart', function() {
+                    dragSrcIndex = this.getAttribute('data-index');
+                    this.classList.add('dragging');
+                });
+
+                row.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                });
+
+                row.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    const targetIndex = this.getAttribute('data-index');
+                    
