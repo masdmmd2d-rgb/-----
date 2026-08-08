@@ -121,7 +121,7 @@
             <div class="calc-title">Калькулятор % (Скидка)</div>
             <div class="calc-inputs">
                 <input type="number" id="calcPrice" placeholder="Цена" oninput="calculatePercent()">
-                <span>-</span> <!-- Знак изменен на минус -->
+                <span>-</span>
                 <input type="number" id="calcPercent" placeholder="%" oninput="calculatePercent()">
                 <span>%</span>
             </div>
@@ -159,13 +159,18 @@
     <script>
         let items = [];
 
+        // Исправленная математика: строгое вычитание процента
         function calculatePercent() {
             const price = parseFloat(document.getElementById('calcPrice').value) || 0;
             const percent = parseFloat(document.getElementById('calcPercent').value) || 0;
             
             if (price > 0) {
-                const discount = (price * percent) / 100;
+                // Всегда берем процент как положительное число для вычитания
+                const absolutePercent = Math.abs(percent);
+                const discount = (price * absolutePercent) / 100;
                 const total = price - discount;
+                
+                document.getElementById('calcResult').style.color = '#e74c3c'; // Красный цвет текста для скидки
                 document.getElementById('calcResult').innerText = `Итог: ${total.toLocaleString('ru-RU')} ₽ (скидка: -${discount.toLocaleString('ru-RU')} ₽)`;
             } else {
                 document.getElementById('calcResult').innerText = 'Итог: 0 ₽';
