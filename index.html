@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>Учёт товаров</title>
     <style>
-        /* Возвращен строгий черный фон */
         body { 
             margin: 0;
             padding: 20px;
@@ -17,7 +16,6 @@
 
         h2 { margin-top: 0; }
 
-        /* Верхняя панель: блоки статистики слева, калькулятор справа */
         .top-container {
             display: flex;
             justify-content: space-between;
@@ -37,7 +35,6 @@
         }
         .card h3 { margin: 10px 0 0 0; font-size: 24px; }
 
-        /* Стили для нового калькулятора процентов */
         .calc-card {
             background: #1e1e1e;
             padding: 15px 20px;
@@ -50,9 +47,9 @@
         .calc-title { font-size: 14px; color: #aaa; margin-bottom: 10px; font-weight: bold; }
         .calc-inputs { display: flex; gap: 8px; align-items: center; }
         .calc-inputs input { width: 80px; }
-        .calc-result { margin-top: 10px; font-size: 15px; color: #2ecc71; font-weight: bold; min-height: 18px; }
+        /* Изменено на красный цвет для скидки */
+        .calc-result { margin-top: 10px; font-size: 15px; color: #e74c3c; font-weight: bold; min-height: 18px; }
 
-        /* Форма добавления товаров */
         .form-group { 
             display: flex; 
             gap: 10px; 
@@ -90,7 +87,6 @@
         }
         button.delete-btn:hover { background: #e74c3c; color: white; }
 
-        /* Таблица */
         .table-container {
             background: #1e1e1e;
             border-radius: 8px;
@@ -115,19 +111,18 @@
     <h2>Учёт товаров</h2>
 
     <div class="top-container">
-        <!-- Карточки статистики (слева) -->
         <div class="stats">
             <div class="card"><div>Потрачено</div><h3 id="total-spent">0 ₽</h3></div>
             <div class="card"><div>Продано</div><h3 id="total-sold">0 ₽</h3></div>
             <div class="card"><div>Прибыль</div><h3 id="total-profit">0 ₽</h3></div>
         </div>
 
-        <!-- Калькулятор процентов (справа в пустой зоне) -->
+        <!-- Калькулятор со знаком МИНУС -->
         <div class="calc-card">
-            <div class="calc-title">Калькулятор % (Наценка / Скидка)</div>
+            <div class="calc-title">Калькулятор % (Скидка)</div>
             <div class="calc-inputs">
                 <input type="number" id="calcPrice" placeholder="Цена" oninput="calculatePercent()">
-                <span>+</span>
+                <span>-</span>
                 <input type="number" id="calcPercent" placeholder="%" oninput="calculatePercent()">
                 <span>%</span>
             </div>
@@ -135,7 +130,6 @@
         </div>
     </div>
 
-    <!-- Форма добавления -->
     <div class="form-group">
         <input type="text" id="itemName" placeholder="Название товара">
         <input type="number" id="itemPrice" placeholder="Цена (₽)">
@@ -146,7 +140,6 @@
         <button onclick="addItem()">Добавить</button>
     </div>
 
-    <!-- Таблица -->
     <div class="table-container">
         <table>
             <thead>
@@ -167,15 +160,15 @@
     <script>
         let items = [];
 
-        // Логика калькулятора процентов
+        // Логика калькулятора процентов (теперь вычитает)
         function calculatePercent() {
             const price = parseFloat(document.getElementById('calcPrice').value) || 0;
             const percent = parseFloat(document.getElementById('calcPercent').value) || 0;
             
             if (price > 0) {
-                const bonus = (price * percent) / 100;
-                const total = price + bonus;
-                document.getElementById('calcResult').innerText = `Итог: ${total.toLocaleString('ru-RU')} ₽ (разница: ${bonus >= 0 ? '+' : ''}${bonus.toLocaleString('ru-RU')} ₽)`;
+                const discount = (price * percent) / 100;
+                const total = price - discount; // Исправлено на минус
+                document.getElementById('calcResult').innerText = `Итог: ${total.toLocaleString('ru-RU')} ₽ (скидка: -${discount.toLocaleString('ru-RU')} ₽)`;
             } else {
                 document.getElementById('calcResult').innerText = 'Итог: 0 ₽';
             }
