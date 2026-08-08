@@ -49,16 +49,12 @@
         .calc-inputs input { width: 80px; }
         .calc-result { margin-top: 10px; font-size: 15px; color: #e74c3c; font-weight: bold; min-height: 18px; }
 
-        .controls-group {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+        .form-group { 
+            display: flex; 
+            gap: 10px; 
+            margin-bottom: 20px; 
             flex-wrap: wrap;
-            gap: 15px;
         }
-
-        .form-group { display: flex; gap: 10px; flex-wrap: wrap; }
         
         input, select { 
             background: #1e1e1e; 
@@ -80,9 +76,6 @@
             font-weight: bold;
         }
         button:hover { background: #27ae60; }
-        
-        button.clear-btn { background: #c0392b; }
-        button.clear-btn:hover { background: #962d22; }
 
         button.delete-btn { 
             background: rgba(231, 76, 60, 0.1); 
@@ -135,20 +128,14 @@
         </div>
     </div>
 
-    <div class="controls-group">
-        <div class="form-group">
-            <input type="text" id="itemName" placeholder="Название товара">
-            <input type="number" id="itemPrice" placeholder="Цена (₽)">
-            <select id="itemType">
-                <option value="Покупка">Покупка</option>
-                <option value="Продажа">Продажа</option>
-            </select>
-            <button onclick="addItem()">Добавить</button>
-        </div>
-
-        <div>
-            <button class="clear-btn" onclick="clearAllData()">Очистить всё</button>
-        </div>
+    <div class="form-group">
+        <input type="text" id="itemName" placeholder="Название товара">
+        <input type="number" id="itemPrice" placeholder="Цена (₽)">
+        <select id="itemType">
+            <option value="Покупка">Покупка</option>
+            <option value="Продажа">Продажа</option>
+        </select>
+        <button onclick="addItem()">Добавить</button>
     </div>
 
     <div class="table-container">
@@ -169,7 +156,7 @@
     </div>
 
     <script>
-        // Загрузка сохранённого списка из памяти браузера
+        // Инициализация: пытаемся загрузить сохраненные данные из памяти, если их нет — создаем пустой массив
         let items = JSON.parse(localStorage.getItem('accounting_items')) || [];
 
         function calculatePercent() {
@@ -188,6 +175,7 @@
             }
         }
 
+        // Функция сохранения текущего массива в localStorage
         function saveToStorage() {
             localStorage.setItem('accounting_items', JSON.stringify(items));
         }
@@ -250,7 +238,7 @@
             };
 
             items.push(newItem);
-            saveToStorage();
+            saveToStorage(); // Сохраняем изменение в память
             render();
 
             nameInput.value = '';
@@ -259,16 +247,8 @@
 
         window.deleteItem = function(id) {
             items = items.filter(item => item.id !== id);
-            saveToStorage();
+            saveToStorage(); // Сохраняем изменение в память
             render();
-        }
-
-        function clearAllData() {
-            if (confirm('Вы уверены, что хотите полностью очистить таблицу и память?')) {
-                items = [];
-                saveToStorage();
-                render();
-            }
         }
 
         function initDragAndDrop() {
@@ -289,3 +269,15 @@
                     e.preventDefault();
                     const targetIndex = this.getAttribute('data-index');
                     
+                    if (dragSrcIndex !== null && dragSrcIndex !== targetIndex) {
+                        const draggedItem = items[dragSrcIndex];
+                        items.splice(dragSrcIndex, 1);
+                        items.splice(targetIndex, 0, draggedItem);
+                        saveToStorage(); // Сохраняем новый порядок в память
+                        render();
+                    }
+                });
+
+                row.addEventListener('dragend', function() {
+                    this.classList.remove('dragging');
+                });
