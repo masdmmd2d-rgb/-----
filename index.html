@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Учёт товаров</title>
+    <style>
+        /* Установка вашего GIF на фон всего экрана */
+        body { 
+            margin: 0;
+            padding: 20px;
+            background: url('bg.gif') no-repeat center center fixed; 
+            background-size: cover;
+            color: #fff; 
+            font-family: sans-serif; 
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            margin-top: 0;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+        }
+
+        /* Карточки с эффектом размытия заднего плана (Glassmorphism) */
+        .stats { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
+        .card { 
+            background: rgba(15, 15, 15, 0.75); 
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            padding: 15px 25px; 
+            border-radius: 12px; 
+            min-width: 150px; 
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+        }
+        .card h3 { margin: 10px 0 0 0; font-size: 24px; }
+
+        .form-group { 
+            display: flex; 
+            gap: 10px; 
+            margin-bottom: 20px; 
+            flex-wrap: wrap;
+        }
+        
+        input, select { 
+            background: rgba(20, 20, 20, 0.85); 
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.15); 
+            color: #fff; 
+            padding: 10px; 
+            border-radius: 6px; 
+            outline: none;
+            transition: border 0.3s;
+        }
+        input:focus, select:focus {
+            border-color: #2ecc71;
+        }
+
+        button { 
+            background: #2ecc71; 
+            border: none; 
+            color: white; 
+            padding: 10px 20px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: bold;
+            transition: background 0.2s, transform 0.1s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        button:hover { background: #27ae60; }
+        button:active { transform: scale(0.98); }
+
+        button.delete-btn { 
+            background: rgba(231, 76, 60, 0.2); 
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+            padding: 6px 12px; 
+            font-size: 13px; 
+        }
+        button.delete-btn:hover { background: #e74c3c; color: white; }
+
+        /* Контейнер таблицы с затемнением, чтобы гифка не мешала читать текст */
+        .table-container {
+            background: rgba(15, 15, 15, 0.75);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 14px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+        th { background: rgba(0, 0, 0, 0.4); font-weight: 600; color: #ccc; }
+        
+        .type-purchase { color: #2ecc71; font-weight: bold; }
+        .type-sale { color: #3498db; font-weight: bold; }
+        
+        /* Стили для перетаскивания строк */
+        tr[draggable="true"] { cursor: grab; transition: background 0.2s; }
+        tr[draggable="true"]:hover { background: rgba(255, 255, 255, 0.05); }
+        tr[draggable="true"]:active { cursor: grabbing; }
+        tr.dragging { opacity: 0.4; background: rgba(255, 255, 255, 0.15) !important; }
+    </style>
+</head>
+<body>
+
+    <h2>Учёт товаров</h2>
+
+    <!-- Карточки статистики -->
+    <div class="stats">
+        <div class="card"><div>Потрачено</div><h3 id="total-spent">0 ₽</h3></div>
+        <div class="card"><div>Продано</div><h3 id="total-sold">0 ₽</h3></div>
+        <div class="card"><div>Прибыль</div><h3 id="total-profit">0 ₽</h3></div>
+    </div>
+
+    <!-- Форма добавления -->
+    <div class="form-group">
+        <input type="text" id="itemName" placeholder="Название товара">
+        <input type="number" id="itemPrice" placeholder="Цена (₽)">
+        <select id="itemType">
+            <option value="Покупка">Покупка</option>
+            <option value="Продажа">Продажа</option>
+        </select>
+        <button onclick="addItem()">Добавить</button>
+    </div>
+
+    <!-- Таблица -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Товар</th>
+                    <th>Тип</th>
+                    <th>Время</th>
+                    <th>Сумма</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <!-- Сюда JS добавляет строки -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        let items = [];
+
+        function render() {
+            const tableBody = document.getElementById('table-body');
+            tableBody.innerHTML = '';
+
+            let spent = 0;
+            let sold = 0;
+
+            items.forEach((item, index) => {
+                if (item.type === 'Покупка') {
+                    spent += item.price;
+                } else {
+                    sold += item.price;
+                }
+
+                tableBody.innerHTML += `
+                    <tr draggable="true" data-index="${index}">
+                        <td>${item.name}</td>
+                        <td class="${item.type === 'Покупка' ? 'type-purchase' : 'type-sale'}">${item.type}</td>
+                        <td style="color: #bbb; font-size: 14px;">${item.time}</td>
+                        <td>${item.price.toLocaleString('ru-RU')} ₽</td>
+                        <td>
+                            <button class="delete-btn" onclick="deleteItem(${item.id})">Удалить</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('total-spent').innerText = `${spent.toLocaleString('ru-RU')} ₽`;
+            document.getElementById('total-sold').innerText = `${sold.toLocaleString('ru-RU')} ₽`;
+            
+            const profit = sold - spent;
+            document.getElementById('total-profit').innerText = `${profit.toLocaleString('ru-RU')} ₽`;
+
+            initDragAndDrop();
+        }
+
+        function addItem() {
+            const nameInput = document.getElementById('itemName');
+            const priceInput = document.getElementById('itemPrice');
+            const typeSelect = document.getElementById('itemType');
+
+            if (!nameInput.value || !priceInput.value) {
+                alert('Заполните все поля!');
+                return;
+            }
+
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+            const newItem = {
+                id: Date.now(), 
+                name: nameInput.value,
+                price: parseFloat(priceInput.value),
+                type: typeSelect.value,
+                time: timeString
+            };
+
+            items.push(newItem);
+            render();
+
+            nameInput.value = '';
+            priceInput.value = '';
+        }
+
+        window.deleteItem = function(id) {
+            items = items.filter(item => item.id !== id);
+            render();
+        }
+
+        function initDragAndDrop() {
+            const rows = document.querySelectorAll('#table-body tr');
+            let dragSrcIndex = null;
+
+            rows.forEach(row => {
+                row.addEventListener('dragstart', function() {
+                    dragSrcIndex = this.getAttribute('data-index');
+                    this.classList.add('dragging');
+                });
+
+                row.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                });
+
+                row.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    const targetIndex = this.getAttribute('data-index');
+                    
+                    if (dragSrcIndex !== null && dragSrcIndex !== targetIndex) {
+                        const draggedItem = items[dragSrcIndex];
+                        items.splice(dragSrcIndex, 1);
+                        items.splice(targetIndex, 0, draggedItem);
+                        render();
+                    }
+                });
+
+                row.addEventListener('dragend', function() {
+                    this.classList.remove('dragging');
+                });
+            });
+        }
+    </script>
+</body>
+</html>
