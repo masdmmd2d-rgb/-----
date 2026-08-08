@@ -116,7 +116,6 @@
             <div class="card"><div>Прибыль</div><h3 id="total-profit">0 ₽</h3></div>
         </div>
 
-        <!-- Калькулятор процентов -->
         <div class="calc-card">
             <div class="calc-title">Калькулятор % (Скидка)</div>
             <div class="calc-inputs">
@@ -157,24 +156,28 @@
     </div>
 
     <script>
-        let items = [];
+        // Инициализация: пытаемся загрузить сохраненные данные из памяти, если их нет — создаем пустой массив
+        let items = JSON.parse(localStorage.getItem('accounting_items')) || [];
 
-        // Исправленная математика: строгое вычитание процента
         function calculatePercent() {
             const price = parseFloat(document.getElementById('calcPrice').value) || 0;
             const percent = parseFloat(document.getElementById('calcPercent').value) || 0;
             
             if (price > 0) {
-                // Всегда берем процент как положительное число для вычитания
                 const absolutePercent = Math.abs(percent);
                 const discount = (price * absolutePercent) / 100;
                 const total = price - discount;
                 
-                document.getElementById('calcResult').style.color = '#e74c3c'; // Красный цвет текста для скидки
+                document.getElementById('calcResult').style.color = '#e74c3c';
                 document.getElementById('calcResult').innerText = `Итог: ${total.toLocaleString('ru-RU')} ₽ (скидка: -${discount.toLocaleString('ru-RU')} ₽)`;
             } else {
                 document.getElementById('calcResult').innerText = 'Итог: 0 ₽';
             }
+        }
+
+        // Функция сохранения текущего массива в localStorage
+        function saveToStorage() {
+            localStorage.setItem('accounting_items', JSON.stringify(items));
         }
 
         function render() {
@@ -235,6 +238,7 @@
             };
 
             items.push(newItem);
+            saveToStorage(); // Сохраняем изменение в память
             render();
 
             nameInput.value = '';
@@ -243,6 +247,7 @@
 
         window.deleteItem = function(id) {
             items = items.filter(item => item.id !== id);
+            saveToStorage(); // Сохраняем изменение в память
             render();
         }
 
@@ -268,6 +273,7 @@
                         const draggedItem = items[dragSrcIndex];
                         items.splice(dragSrcIndex, 1);
                         items.splice(targetIndex, 0, draggedItem);
+                        saveToStorage(); // Сохраняем новый порядок в память
                         render();
                     }
                 });
@@ -275,8 +281,3 @@
                 row.addEventListener('dragend', function() {
                     this.classList.remove('dragging');
                 });
-            });
-        }
-    </script>
-</body>
-</html>
