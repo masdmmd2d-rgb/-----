@@ -47,7 +47,6 @@
         .calc-title { font-size: 14px; color: #aaa; margin-bottom: 10px; font-weight: bold; }
         .calc-inputs { display: flex; gap: 8px; align-items: center; }
         .calc-inputs input { width: 80px; }
-        /* Изменено на красный цвет для скидки */
         .calc-result { margin-top: 10px; font-size: 15px; color: #e74c3c; font-weight: bold; min-height: 18px; }
 
         .form-group { 
@@ -117,12 +116,12 @@
             <div class="card"><div>Прибыль</div><h3 id="total-profit">0 ₽</h3></div>
         </div>
 
-        <!-- Калькулятор со знаком МИНУС -->
+        <!-- Калькулятор процентов -->
         <div class="calc-card">
             <div class="calc-title">Калькулятор % (Скидка)</div>
             <div class="calc-inputs">
                 <input type="number" id="calcPrice" placeholder="Цена" oninput="calculatePercent()">
-                <span>-</span>
+                <span>-</span> <!-- Знак изменен на минус -->
                 <input type="number" id="calcPercent" placeholder="%" oninput="calculatePercent()">
                 <span>%</span>
             </div>
@@ -160,14 +159,13 @@
     <script>
         let items = [];
 
-        // Логика калькулятора процентов (теперь вычитает)
         function calculatePercent() {
             const price = parseFloat(document.getElementById('calcPrice').value) || 0;
             const percent = parseFloat(document.getElementById('calcPercent').value) || 0;
             
             if (price > 0) {
                 const discount = (price * percent) / 100;
-                const total = price - discount; // Исправлено на минус
+                const total = price - discount;
                 document.getElementById('calcResult').innerText = `Итог: ${total.toLocaleString('ru-RU')} ₽ (скидка: -${discount.toLocaleString('ru-RU')} ₽)`;
             } else {
                 document.getElementById('calcResult').innerText = 'Итог: 0 ₽';
